@@ -65,7 +65,7 @@ except:
     with open("data.pickle", "wb") as f:
         pickle.dump((words, labels, training, output), f)
 
-tensorflow.reset_default_graph()
+tensorflow.compat.v1.reset_default_graph()
 
 net = tflearn.input_data(shape=[None, len(training[0])])
 net = tflearn.fully_connected(net, 8)
@@ -91,9 +91,25 @@ def bag_of_words(s, words):
     for se in s_words:
         for i, w in enumerate(words):
             if w == se:
-                bag[i].append(1)
+                bag[i] = 1
 
         return numpy.array(bag)
 
 def chat():
-    print("Start talking with the bot!")
+    print("Start talking with the bot (type quit to stop)!")
+    while True:
+        inp = input("You: ")
+        if inp.lower() == "quit":
+            break
+
+        results = model.predict([bag_of_words(inp, words)])
+        results_index = numpy.argmax(results)
+        tag = labels[results_index]
+        
+        for tg in data["intents"]:
+            if tg['tag'] == tag:
+                responses = tg['responses']
+
+        print(random.choice(responses))
+
+chat() 
